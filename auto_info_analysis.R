@@ -287,6 +287,16 @@ prop.table(table(d3$brand)) * 100
 
 
 
+# task 4 - hypothesis testing: vehicle type - prive
+
+# null H0: the mean price is the same for all vehicle types
+# alternative H1: at least one vehicle type has a different mean price.
+
+
+
+
+
+
 
 
 
