@@ -118,4 +118,99 @@ for(col in numeric_cols){
 
 
 
-# step 2 - draw box plots 
+# step 2 - get central tendencies for numerical columns
+
+# view summary for individual columns
+summary(d3$engine_size)
+summary(d3$horsepower)
+summary(d3$curb_weight)
+summary(d3$fuel_efficiency)
+summary(d3$age)
+summary(d3$price)
+
+# mode function
+get_mode <- function(v) {
+  uniq_vals <- unique(v)
+  freq <- tabulate(match(v, uniq_vals))
+  mode_val <- uniq_vals[which.max(freq)]
+  return(mode_val)
+}
+
+# calculate modes
+mode_engine_size <- get_mode(d3$engine_size)
+mode_horsepower <- get_mode(d3$horsepower)
+mode_curb_weight <- get_mode(d3$curb_weight)
+mode_fuel_efficiency <- get_mode(d3$fuel_efficiency)
+mode_age <- get_mode(d3$age)
+mode_price <- get_mode(d3$price)
+
+# display modes
+mode_engine_size
+mode_horsepower
+mode_curb_weight
+mode_fuel_efficiency
+mode_age
+mode_price
+
+
+# standard deviation for each column
+sd_values <- sapply(d3[numeric_cols], sd)
+sd_values
+
+
+
+# step 3 - bell curve
+# using a function to efficiently get all plots by going through the 
+# numerical column thing
+
+# Function to plot bell curve
+plot_bell_curve <- function(data, col_name){
+  
+  # Extract variable
+  variable <- data[[col_name]]
+  
+  # compute central tendencies for plot
+  mean_val <- mean(variable)
+  median_val <- median(variable)
+  mode_val <- get_mode(variable)
+  sd_val <- sd(variable)
+  
+  # plot bell curve function
+  p <- ggplot(data.frame(x = c(mean_val - 4*sd_val, mean_val + 4*sd_val)), aes(x)) +
+    stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val),
+                  color = "blue", linewidth = 1) +
+    labs(title = paste("Bell Curve for", col_name),
+         x = col_name, y = "Density") +
+    geom_vline(xintercept = mean_val, color = "red", linetype = "dashed") +
+    geom_vline(xintercept = median_val, color = "green", linetype = "dashed") +
+    geom_vline(xintercept = mode_val, color = "purple", linetype = "dashed") +
+    annotate("text", x = mean_val, y = 0.02,
+             label = paste("Mean =", round(mean_val,2)), color="red", hjust=-0.1) +
+    annotate("text", x = median_val, y = 0.018,
+             label = paste("Median =", round(median_val,2)), color="darkgreen", hjust=-0.1) +
+    annotate("text", x = mode_val, y = 0.016,
+             label = paste("Mode =", round(mode_val,2)), color="purple", hjust=-0.1) +
+    theme_bw()
+  
+  # save plot as png image
+  ggsave(filename = paste0(col_name, "_bell_curve.png"), plot = p, width = 6, height = 4)
+  
+  return(p)
+}
+
+# loop through numeric columns and create bell curves
+bell_curves <- lapply(numeric_cols, function(col) plot_bell_curve(d3, col))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
