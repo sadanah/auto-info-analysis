@@ -1,4 +1,4 @@
-#task 3
+#task 3 - ct and bell curves
 
 # load raw dataset
 d <- read.csv("auto_info.csv")
@@ -65,7 +65,7 @@ remove_outliers <- function(df, cols) {
   return(df)
 }
 
-# remove outliers 
+# remove outliers - d3 is the clean dataset now
 d3 <- remove_outliers(d2, numeric_cols)
 
 
@@ -200,6 +200,90 @@ plot_bell_curve <- function(data, col_name){
 
 # loop through numeric columns and create bell curves
 bell_curves <- lapply(numeric_cols, function(col) plot_bell_curve(d3, col))
+
+
+
+# curb weight and price had flat bell curves
+
+
+
+# Flexible bell curve function
+plot_new_bell_curve <- function(data, col_name, transform = NULL, auto_scale = TRUE) {
+  
+  # Extract variable
+  variable <- data[[col_name]]
+  
+  # Remove NA
+  variable <- na.omit(variable)
+  
+  # Apply transformation if provided
+  if (!is.null(transform)) {
+    variable <- transform(variable)
+    col_label <- paste0(deparse(substitute(transform)), "(", col_name, ")")
+  } else {
+    col_label <- col_name
+  }
+  
+  # Auto scale if SD is huge
+  sd_val <- sd(variable)
+  if (auto_scale && sd_val > 100) {
+    variable <- scale(variable)  # mean 0, sd 1
+    sd_val <- sd(variable)
+    col_label <- paste0(col_label, " (scaled)")
+  }
+  
+  # Central tendencies
+  mean_val <- mean(variable)
+  median_val <- median(variable)
+  mode_val <- get_mode(variable)
+  
+  # Plot range
+  x_min <- mean_val - 4 * sd_val
+  x_max <- mean_val + 4 * sd_val
+  
+  # Plot
+  p <- ggplot(data.frame(x = c(x_min, x_max)), aes(x)) +
+    stat_function(fun = dnorm, args = list(mean = mean_val, sd = sd_val), 
+                  color = "blue", linewidth = 1) +
+    labs(title = paste("Bell Curve for", col_label),
+         x = col_label, y = "Density") +
+    geom_vline(xintercept = mean_val, color = "red", linetype = "dashed") +
+    geom_vline(xintercept = median_val, color = "green", linetype = "dashed") +
+    geom_vline(xintercept = mode_val, color = "purple", linetype = "dashed") +
+    annotate("text", x = mean_val, y = 0.02,
+             label = paste("Mean =", round(mean_val,2)), color="red", hjust=-0.1) +
+    annotate("text", x = median_val, y = 0.018,
+             label = paste("Median =", round(median_val,2)), color="darkgreen", hjust=-0.1) +
+    annotate("text", x = mode_val, y = 0.016,
+             label = paste("Mode =", round(mode_val,2)), color="purple", hjust=-0.1) +
+    theme_bw()
+  
+  # Save plot
+  ggsave(filename = paste0(gsub("[()]", "_", col_label), "_new_bell_curve.png"), plot = p, width = 6, height = 4)
+  
+  return(p)
+}
+
+
+# bell curve  for flats with log to make more bell(y)
+plot_new_bell_curve(d3, "curb_weight", transform = log)
+
+
+plot_new_bell_curve(d3, "price", transform = log)
+
+
+
+
+#non numerical column analysis
+table(d3$vehicle_type)
+prop.table(table(d3$vehicle_type)) * 100  # % of distribution
+
+table(d3$brand)
+prop.table(table(d3$brand)) * 100
+
+# idk what this says
+
+
 
 
 
